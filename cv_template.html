@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ cv.name }} - Lebenslauf</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 40px;
+      color: #333;
+      line-height: 1.4;
+    }
+    h1 {
+      color: #00214D;
+      font-size: 2.5em;
+      margin-bottom: 0.1em;
+    }
+    h2 {
+      color: #00214D;
+      font-size: 1.8em;
+      margin-top: 2em;
+      margin-bottom: 0.4em;
+      border-bottom: 2px solid #00214D;
+      padding-bottom: 4px;
+    }
+    h3 {
+      color: #004080;
+      font-size: 1.2em;
+      margin-bottom: 0.2em;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5em;
+    }
+    .header-left {
+      width: 65%;
+    }
+    .header-right {
+      width: 30%;
+      text-align: right;
+    }
+    .header-right img {
+      height: 1.5cm;
+    }
+    .section-info {
+      margin-bottom: 1.5em;
+    }
+    .basic-info p {
+      margin: 0.15em 0;
+    }
+    ul {
+      margin-left: 1.5em;
+    }
+    .job-entry {
+      margin-bottom: 1.2em;
+    }
+    .job-entry strong {
+      color: #00214D;
+      font-size: 1.1em;
+    }
+    .job-entry em {
+      font-style: italic;
+      display: block;
+      margin-bottom: 0.3em;
+      color: #555;
+    }
+    .job-entry span.period {
+      float: right;
+      font-style: italic;
+      color: #444;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #00214D;
+      margin: 1.5em 0;
+    }
+    .subsection {
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-left">
+      <h1>{{ cv.job_title }}</h1>
+      <h3>{{ cv.name }}</h3>
+    </div>
+    <div class="header-right">
+      <!-- Optional: Logo einfügen, wenn du eins hast -->
+      <!-- <img src="logo.png" alt="Logo" /> -->
+    </div>
+  </div>
+
+  <div class="section-info basic-info">
+    <p><strong>Geburtsjahr:</strong> {{ cv.birth_year }}</p>
+    <p><strong>Wohnort:</strong> {{ cv.location }}</p>
+    <p><strong>Familienstand:</strong> {{ cv.family_status }}</p>
+    <p><strong>Staatsangehörigkeit:</strong> {{ cv.nationality }}</p>
+  </div>
+
+  <h2>Berufsziel</h2>
+  <p>{{ cv.career_goal }}</p>
+
+  {% if cv.work_experience %}
+  <h2>Beruflicher Werdegang</h2>
+  {% for job in cv.work_experience %}
+    <div class="job-entry">
+      <strong>{{ job.position }}</strong>
+      <span class="period">{{ job.period }}</span>
+      <em>{{ job.company }}</em>
+      <ul>
+        {% for task in job.tasks %}
+          <li>{{ task }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if cv.education %}
+  <h2>Ausbildung</h2>
+  {% for edu in cv.education %}
+    <p><strong>{{ edu.degree }}</strong></p>
+  {% endfor %}
+  {% endif %}
+
+  {% if cv.skills %}
+  <h2>Kenntnisse &amp; Fähigkeiten</h2>
+
+  {% if cv.skills.fachkompetenz %}
+  <div class="subsection">
+    <h3>Fachkompetenz</h3>
+    <ul>
+      {% for item in cv.skills.fachkompetenz %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.skills.software %}
+  <div class="subsection">
+    <h3>Software &amp; Tools</h3>
+    <ul>
+      {% for item in cv.skills.software %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.skills.languages %}
+  <div class="subsection">
+    <h3>Sprachen</h3>
+    <ul>
+      {% for item in cv.skills.languages %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.skills.personal_strengths %}
+  <div class="subsection">
+    <h3>Persönliche Stärken</h3>
+    <ul>
+      {% for item in cv.skills.personal_strengths %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% endif %}
+
+</body>
+</html>
