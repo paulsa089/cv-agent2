@@ -120,7 +120,7 @@ if st.button("Lebenslauf generieren"):
     template = env.get_template('cv_template.html')
     html_content = template.render(cv=cv_data)
 
-       try:
+    try:
         client = pdfcrowd.HtmlToPdfClient(PDFCROWD_USERNAME, PDFCROWD_API_KEY)
         pdf_bytes = client.convertString(html_content)
         output_file = f"{name.replace(' ', '_')}_Lebenslauf.pdf"
