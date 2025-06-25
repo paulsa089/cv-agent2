@@ -120,10 +120,13 @@ if st.button("Lebenslauf generieren"):
     template = env.get_template('cv_template.html')
     html_content = template.render(cv=cv_data)
 
-    try:
+       try:
         client = pdfcrowd.HtmlToPdfClient(PDFCROWD_USERNAME, PDFCROWD_API_KEY)
         pdf_bytes = client.convertString(html_content)
         output_file = f"{name.replace(' ', '_')}_Lebenslauf.pdf"
 
         st.success("PDF erfolgreich erstellt!")
-        st.download_button("PDF herunterladen", data=pdf_bytes, file_name=output_file,
+        st.download_button("PDF herunterladen", data=pdf_bytes, file_name=output_file, mime="application/pdf")
+
+    except pdfcrowd.Error as e:
+        st.error(f"Fehler bei der PDF-Erstellung: {e}")
