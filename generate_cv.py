@@ -1,12 +1,36 @@
 import streamlit as st
 import pdfcrowd
 from jinja2 import Environment, FileSystemLoader
+from docx import Document  # Für .docx Dateien
 
 # PDFCrowd Zugangsdaten
 PDFCROWD_USERNAME = 'paulsa'  # Deinen pdfcrowd Username eintragen
 PDFCROWD_API_KEY = 'e0bd4b588648bfc431efcd2c0df245a2'  # Deinen pdfcrowd API Key eintragen
 
 st.title("Lebenslauf Generator (Cloud PDF)")
+
+st.header("Kursprofil eingeben")
+
+# Kursprofil Input: Freitext oder Datei-Upload
+input_type = st.radio("Kursprofil eingeben oder Datei hochladen?", ("Freitext", "Datei hochladen"))
+
+kursprofil_text = ""
+
+if input_type == "Freitext":
+    kursprofil_text = st.text_area("Kursprofil beschreiben", height=200)
+
+elif input_type == "Datei hochladen":
+    uploaded_file = st.file_uploader("Lade dein Kursprofil hoch (.txt oder .docx)", type=['txt', 'docx'])
+    if uploaded_file:
+        if uploaded_file.type == "text/plain":
+            kursprofil_text = uploaded_file.read().decode('utf-8')
+            st.text_area("Inhalt der Datei", kursprofil_text, height=200)
+        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            doc = Document(uploaded_file)
+            kursprofil_text = "\n".join([p.text for p in doc.paragraphs])
+            st.text_area("Inhalt der Datei", kursprofil_text, height=200)
+        else:
+            st.error("Dateityp nicht unterstützt")
 
 st.header("Lebenslauf-Daten eingeben")
 
@@ -86,7 +110,8 @@ cv_data = {
     "salary": "",         # Optional
     "availability": "",   # Optional
     "email": "",          # Optional
-    "phone": ""           # Optional
+    "phone": "",          # Optional
+    "kursprofil": kursprofil_text  # Hier kannst du das Kursprofil weiterverwenden
 }
 
 if st.button("Lebenslauf generieren"):
@@ -101,7 +126,4 @@ if st.button("Lebenslauf generieren"):
         output_file = f"{name.replace(' ', '_')}_Lebenslauf.pdf"
 
         st.success("PDF erfolgreich erstellt!")
-        st.download_button("PDF herunterladen", data=pdf_bytes, file_name=output_file, mime="application/pdf")
-
-    except pdfcrowd.Error as e:
-        st.error(f"Fehler bei der PDF-Erstellung: {e}")
+        st.download_button("PDF herunterladen", data=pdf_bytes, file_name=output_file,
