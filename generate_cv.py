@@ -22,21 +22,21 @@ kurzprofil_text = st.text_area("Beschreibe das Kurzprofil", height=200)
 
 def generate_cv_text(kurzprofil):
     prompt = f"""
-    Du bist ein erfahrener Karriereberater. Erstelle aus folgendem Kurzprofil einen strukturierten Lebenslauf mit Abschnitten zu Ausbildung, Berufserfahrung, Fähigkeiten und Sprachkenntnissen.
-    
-    Kurzprofil:
-    {kurzprofil}
-    
-    Bitte formatiere den Lebenslauf als JSON mit folgenden Feldern:
-    - name
-    - birth_year
-    - location
-    - education: Liste von Einträgen mit degree, institution, period
-    - work_experience: Liste von Einträgen mit position, company, period, tasks (Liste)
-    - skills: fachkompetenz, personal_strengths, software, languages (jeweils Listen)
-    - career_goal
-    """
-    response = openai.ChatCompletion.create(
+Du bist ein erfahrener Karriereberater. Erstelle aus folgendem Kurzprofil einen strukturierten Lebenslauf mit Abschnitten zu Ausbildung, Berufserfahrung, Fähigkeiten und Sprachkenntnissen.
+
+Kurzprofil:
+{kurzprofil}
+
+Bitte formatiere den Lebenslauf als JSON mit folgenden Feldern:
+- name
+- birth_year
+- location
+- education: Liste von Einträgen mit degree, institution, period
+- work_experience: Liste von Einträgen mit position, company, period, tasks (Liste)
+- skills: fachkompetenz, personal_strengths, software, languages (jeweils Listen)
+- career_goal
+"""
+    response = openai.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
