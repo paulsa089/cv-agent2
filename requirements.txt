@@ -2,3 +2,4 @@ streamlit
 pdfcrowd
 jinja2
 python-docx
+openai
