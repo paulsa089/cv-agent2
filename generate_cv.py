@@ -83,4 +83,4 @@ def generate_pdf(cv_data, output_path="generated_cv.pdf"):
     with open(output_path, "wb") as f:
         client.convertStringToFile(html_content, f)
 
-    return output_pat_
+    return output_path
