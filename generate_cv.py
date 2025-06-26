@@ -2,8 +2,10 @@ import streamlit as st
 import openai
 import json
 from jinja2 import Template
+from weasyprint import HTML
+import tempfile
 
-# OpenAI-Key aus Umgebungsvariable oder hier manuell setzen
+# OpenAI-Key setzen
 openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else "dein_api_key"
 
 def generate_cv_text(kurzprofil):
@@ -73,7 +75,6 @@ Gib jetzt ausschließlich das vollständige JSON aus. Keine zusätzlichen Erklä
 
     text_response = response.choices[0].message.content.strip()
 
-    # JSON extrahieren, falls in code block
     if text_response.startswith("```json"):
         text_response = text_response.strip("```json").strip("```").strip()
 
@@ -93,7 +94,13 @@ def render_cv_html(cv_json, template_path="template.html"):
     template = Template(template_str)
     return template.render(cv=cv_json)
 
-st.title("Lebenslauf-Generator mit GPT-4")
+def generate_pdf_from_html(html_content):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+        HTML(string=html_content).write_pdf(temp_pdf.name)
+        return temp_pdf.name
+
+# Streamlit UI
+st.title("Lebenslauf-Generator mit GPT-4 und PDF-Export")
 
 kurzprofil = st.text_area("Kurzprofil eingeben", height=200)
 
@@ -108,3 +115,15 @@ if st.button("Lebenslauf generieren") and kurzprofil.strip():
             st.markdown("---")
             st.markdown("### Vorschau Lebenslauf (HTML gerendert)")
             st.components.v1.html(html_output, height=800, scrolling=True)
+
+            # PDF erzeugen
+            pdf_path = generate_pdf_from_html(html_output)
+
+            # Download-Button
+            with open(pdf_path, "rb") as pdf_file:
+                st.download_button(
+                    label="📄 PDF herunterladen",
+                    data=pdf_file,
+                    file_name="lebenslauf.pdf",
+                    mime="application/pdf"
+                )
