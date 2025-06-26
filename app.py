@@ -1,5 +1,5 @@
 import streamlit as st
-from generate_cv import generate_cv_text, generate_pdf
+from generate_cv import generate_cv_json, generate_pdf
 
 st.set_page_config(page_title="CV Generator", layout="wide")
 
@@ -12,26 +12,20 @@ if st.button("Lebenslauf generieren"):
         st.error("Bitte gib ein Kurzprofil ein.")
     else:
         with st.spinner("Lebenslauf wird generiert..."):
-            cv_text = generate_cv_text(kurzprofil)
+            cv_data = generate_cv_json(kurzprofil)
 
-        st.subheader("📄 Generierter Lebenslauf")
-        st.write(cv_text)
+            if cv_data is None:
+                st.error("Fehler bei der Generierung des Lebenslaufs.")
+            else:
+                st.subheader("📄 Generierter Lebenslauf")
+                st.json(cv_data)
 
-        html_content = f"""
-        <html>
-        <head><meta charset="utf-8"></head>
-        <body style="font-family: Arial, sans-serif; margin: 40px;">
-        {cv_text.replace("\n", "<br><br>")}
-        </body>
-        </html>
-        """
+                pdf_path = generate_pdf(cv_data)
 
-        pdf_path = generate_pdf(html_content)
-
-        with open(pdf_path, "rb") as file:
-            btn = st.download_button(
-                label="📥 PDF herunterladen",
-                data=file,
-                file_name="Lebenslauf.pdf",
-                mime="application/pdf"
-            )
+                with open(pdf_path, "rb") as file:
+                    btn = st.download_button(
+                        label="📥 PDF herunterladen",
+                        data=file,
+                        file_name="Lebenslauf.pdf",
+                        mime="application/pdf"
+                    )
