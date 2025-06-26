@@ -1,57 +1,86 @@
 import openai
 import pdfcrowd
 import os
+import json
 from dotenv import load_dotenv
+from jinja2 import Template
 
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_cv_text(kurzprofil):
+def generate_cv_json(kurzprofil):
     prompt = f"""
     Du bist ein professioneller Lebenslauf-Generator.
 
     Aufgabe:
-    Erstelle aus dem folgenden Kurzprofil einen vollständigen, realistisch ausgeschmückten Lebenslauf im Stil eines anonymisierten Bewerberprofils.
+    Erstelle aus dem folgenden Kurzprofil einen vollständigen, realistisch ausgeschmückten Lebenslauf im JSON-Format.
 
     Vorgaben:
-    - Verwende fiktive, aber plausible Daten für Name, Geburtsjahr (ca. 30 Jahre alt), Wohnort (Bremen), Familienstand (ledig) und Staatsangehörigkeit (deutsch).
-    - Baue den Lebenslauf sinnvoll und ansprechend auf.
-    - Schreibe in vollständigen Sätzen.
-    - Strukturiere den Lebenslauf in folgende Abschnitte:
-        1. Persönliche Angaben
-        2. Berufsziel
-        3. Berufserfahrung (mindestens 2 Stationen mit Zeiträumen, Firmen und realistisch ausgeschmückten Aufgaben)
-        4. Ausbildung
-        5. Kenntnisse & Fähigkeiten (Fachkenntnisse, Software, Sprachen, Persönliche Stärken)
-        6. Rahmenbedingungen (Gehaltswunsch und Verfügbarkeit)
-
-    - Der Ton soll professionell und authentisch sein.
-    - Verwende keine Bulletpoints in den persönlichen Angaben.
-    - Die Tätigkeitsbeschreibungen sollen jeweils 4–5 Aufgaben umfassen.
+    - Gib das Ergebnis ausschließlich als JSON-Objekt zurück, kein Freitext.
+    - Das JSON-Objekt soll folgende Felder enthalten:
+        - "name": String (immer "Anonymisiert")
+        - "birth_year": String (ungefähr 30 Jahre alt)
+        - "location": "Bremen"
+        - "family_status": "Ledig"
+        - "nationality": "Deutsch"
+        - "email": Optional (lasse leer)
+        - "phone": Optional (lasse leer)
+        - "salary": Gehaltswunsch aus der Eingabe oder leer
+        - "availability": Verfügbarkeit aus der Eingabe oder leer
+        - "career_goal": 3-4 Sätze, zusammenhängender Fließtext
+        - "work_experience": Liste von mindestens 2 Stationen, jeweils:
+            - "position": String
+            - "company": String
+            - "period": String
+            - "tasks": Liste mit 4-5 Aufgaben
+        - "education": Liste von Bildungsabschlüssen, jeweils:
+            - "degree": String
+        - "skills": Enthält:
+            - "fachkompetenz": Liste
+            - "software": Liste
+            - "languages": Liste
+            - "personal_strengths": Liste
 
     Eingabe:
     {kurzprofil}
 
-    Gib den vollständigen Lebenslauf jetzt als zusammenhängenden Fließtext aus. Keine zusätzlichen Erklärungen.
+    Gib nur das JSON-Objekt zurück, keine weiteren Erklärungen.
     """
 
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=2000
-    )
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=2000
+        )
 
-    return response.choices[0].message.content
+        content = response.choices[0].message.content.strip()
 
-def generate_pdf(html_content, output_path="generated_cv.pdf"):
+        # JSON parsen
+        cv_json = json.loads(content)
+        return cv_json
+
+    except Exception as e:
+        print(f"Fehler: {e}")
+        return None
+
+
+def generate_pdf(cv_data, output_path="generated_cv.pdf"):
     username = os.getenv("PDFCROWD_USERNAME")
     api_key = os.getenv("PDFCROWD_API_KEY")
+
+    # HTML Template laden
+    with open("cv_template.html", "r", encoding="utf-8") as file:
+        template_str = file.read()
+
+    template = Template(template_str)
+    html_content = template.render(cv=cv_data)
 
     client = pdfcrowd.HtmlToPdfClient(username, api_key)
 
     with open(output_path, "wb") as f:
         client.convertStringToFile(html_content, f)
 
-    return output_path
+    return output_pat_
