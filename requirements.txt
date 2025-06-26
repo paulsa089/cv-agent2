@@ -1,6 +1,5 @@
-streamlit>=1.20.0
-pdfcrowd>=2.3.0
-jinja2>=3.1.2
-python-docx>=0.8.11
-openai>=0.27.0
-python-dotenv>=1.0.0
+streamlit
+openai
+pdfcrowd
+jinja2
+python-dotenv
