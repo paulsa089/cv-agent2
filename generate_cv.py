@@ -1,6 +1,10 @@
+import streamlit as st
 import openai
 import json
 from jinja2 import Template
+
+# OpenAI-Key aus Umgebungsvariable oder hier manuell setzen
+openai.api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else "dein_api_key"
 
 def generate_cv_text(kurzprofil):
     prompt = f"""
@@ -69,15 +73,17 @@ Gib jetzt ausschließlich das vollständige JSON aus. Keine zusätzlichen Erklä
 
     text_response = response.choices[0].message.content.strip()
 
-    # Versuche, reines JSON zu parsen, eventuell Extraktion nötig
-    # Wenn die Antwort ein JSON-Block in ```json ... ``` ist, extrahiere nur den JSON-Teil:
+    # JSON extrahieren, falls in code block
     if text_response.startswith("```json"):
         text_response = text_response.strip("```json").strip("```").strip()
 
     try:
         cv_json = json.loads(text_response)
     except json.JSONDecodeError as e:
-        raise ValueError(f"JSON konnte nicht geparst werden: {e}\nAntwort:\n{text_response}")
+        st.error(f"JSON Parsing Fehler: {e}")
+        st.write("Antwort von GPT-4:")
+        st.code(text_response)
+        return None
 
     return cv_json
 
@@ -85,20 +91,20 @@ def render_cv_html(cv_json, template_path="template.html"):
     with open(template_path, "r", encoding="utf-8") as file:
         template_str = file.read()
     template = Template(template_str)
-    html_output = template.render(cv=cv_json)
-    return html_output
+    return template.render(cv=cv_json)
 
-if __name__ == "__main__":
-    kurzprofil = """
-    [Hier dein Kurzprofil als Input-Text einfügen]
-    """
-    # Beispiel Kurzprofil - bitte anpassen
+st.title("Lebenslauf-Generator mit GPT-4")
 
-    cv_json = generate_cv_text(kurzprofil)
-    print("Generiertes JSON:", cv_json)
+kurzprofil = st.text_area("Kurzprofil eingeben", height=200)
 
-    html = render_cv_html(cv_json)
-    with open("output_cv.html", "w", encoding="utf-8") as f:
-        f.write(html)
+if st.button("Lebenslauf generieren") and kurzprofil.strip():
+    with st.spinner("Erzeuge Lebenslauf..."):
+        cv_json = generate_cv_text(kurzprofil)
+        if cv_json:
+            st.success("Lebenslauf JSON erzeugt!")
+            st.json(cv_json)
 
-    print("Lebenslauf HTML wurde in 'output_cv.html' gespeichert.")
+            html_output = render_cv_html(cv_json)
+            st.markdown("---")
+            st.markdown("### Vorschau Lebenslauf (HTML gerendert)")
+            st.components.v1.html(html_output, height=800, scrolling=True)
