@@ -1,51 +1,29 @@
-import openai
-import pdfcrowd
 import os
 import json
-import re
-from dotenv import load_dotenv
+import openai
+import pdfcrowd
 from jinja2 import Template
 
-load_dotenv()
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# API-Keys aus Streamlit Secrets lesen, wenn verfügbar (Cloud)
+try:
+    import streamlit as st
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+    pdfcrowd_username = st.secrets["PDFCROWD_USERNAME"]
+    pdfcrowd_api_key = st.secrets["PDFCROWD_API_KEY"]
+except ImportError:
+    # Fallback lokale Entwicklung (z.B. .env)
+    from dotenv import load_dotenv
+    load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    pdfcrowd_username = os.getenv("PDFCROWD_USERNAME")
+    pdfcrowd_api_key = os.getenv("PDFCROWD_API_KEY")
 
 def generate_cv_json(kurzprofil):
     prompt = f"""
     Du bist ein professioneller Lebenslauf-Generator.
-
-    Aufgabe:
-    Erstelle aus dem folgenden Kurzprofil einen vollständigen, realistisch ausgeschmückten Lebenslauf im JSON-Format.
-
-    Vorgaben:
-    - Gib das Ergebnis ausschließlich als JSON-Objekt zurück, kein Freitext.
-    - Das JSON-Objekt soll folgende Felder enthalten:
-        - "name": String (immer "Anonymisiert")
-        - "birth_year": String (ungefähr 30 Jahre alt)
-        - "location": "Bremen"
-        - "family_status": "Ledig"
-        - "nationality": "Deutsch"
-        - "email": Optional (lasse leer)
-        - "phone": Optional (lasse leer)
-        - "salary": Gehaltswunsch aus der Eingabe oder leer
-        - "availability": Verfügbarkeit aus der Eingabe oder leer
-        - "career_goal": 3-4 Sätze, zusammenhängender Fließtext
-        - "work_experience": Liste von mindestens 2 Stationen, jeweils:
-            - "position": String
-            - "company": String
-            - "period": String
-            - "tasks": Liste mit 4-5 Aufgaben
-        - "education": Liste von Bildungsabschlüssen, jeweils:
-            - "degree": String
-        - "skills": Enthält:
-            - "fachkompetenz": Liste
-            - "software": Liste
-            - "languages": Liste
-            - "personal_strengths": Liste
-
+    ...
     Eingabe:
     {kurzprofil}
-
     Gib nur das JSON-Objekt zurück, keine weiteren Erklärungen.
     """
 
@@ -56,41 +34,25 @@ def generate_cv_json(kurzprofil):
             temperature=0.3,
             max_tokens=2000
         )
-
         content = response.choices[0].message.content.strip()
-        print("OpenAI response (raw):", content)
-
-        # Entferne evtl. Markdown-Codeblöcke mit JSON (```json ... ```)
-        content = re.sub(r"^```json|```$", "", content, flags=re.MULTILINE).strip()
-
-        cv_json = json.loads(content)
-        return cv_json
-
+        return json.loads(content)
     except Exception as e:
-        print(f"Fehler beim JSON parsen oder API-Aufruf: {e}")
-        print(f"Antwort war:\n{content}")
+        print(f"Fehler: {e}")
         return None
 
-
 def generate_pdf(cv_data, output_path="generated_cv.pdf"):
-    username = os.getenv("PDFCROWD_USERNAME")
-    api_key = os.getenv("PDFCROWD_API_KEY")
-
-    # Absoluten Pfad zum Template ermitteln
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    template_path = os.path.join(BASE_DIR, "cv_template.html")  # Passe den Dateinamen an, falls nötig
+    template_path = os.path.join(BASE_DIR, "cv_template.html")
 
-    # HTML Template laden
     with open(template_path, "r", encoding="utf-8") as file:
         template_str = file.read()
 
     template = Template(template_str)
     html_content = template.render(cv=cv_data)
 
-    client = pdfcrowd.HtmlToPdfClient(username, api_key)
+    client = pdfcrowd.HtmlToPdfClient(pdfcrowd_username, pdfcrowd_api_key)
 
     with open(output_path, "wb") as f:
         client.convertStringToFile(html_content, f)
 
     return output_path
-
