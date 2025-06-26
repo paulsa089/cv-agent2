@@ -21,7 +21,7 @@ def generate_cv_text(kurzprofil):
     - Strukturiere den Lebenslauf in folgende Abschnitte:
         1. Persönliche Angaben
         2. Berufsziel
-        3. Berufserfahrung (2 Stationen mit Zeiträumen, Firmen und realistisch ausgeschmückten Aufgaben)
+        3. Berufserfahrung (mindestens 2 Stationen mit Zeiträumen, Firmen und realistisch ausgeschmückten Aufgaben)
         4. Ausbildung
         5. Kenntnisse & Fähigkeiten (Fachkenntnisse, Software, Sprachen, Persönliche Stärken)
         6. Rahmenbedingungen (Gehaltswunsch und Verfügbarkeit)
@@ -29,7 +29,6 @@ def generate_cv_text(kurzprofil):
     - Der Ton soll professionell und authentisch sein.
     - Verwende keine Bulletpoints in den persönlichen Angaben.
     - Die Tätigkeitsbeschreibungen sollen jeweils 4–5 Aufgaben umfassen.
-    - Verwende als Standort Bremen.
 
     Eingabe:
     {kurzprofil}
