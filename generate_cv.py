@@ -76,8 +76,12 @@ def generate_pdf(cv_data, output_path="generated_cv.pdf"):
     username = os.getenv("PDFCROWD_USERNAME")
     api_key = os.getenv("PDFCROWD_API_KEY")
 
+    # Absoluten Pfad zum Template ermitteln
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(BASE_DIR, "cv_template.html")  # Passe den Dateinamen an, falls nötig
+
     # HTML Template laden
-    with open("cv_template.html", "r", encoding="utf-8") as file:
+    with open(template_path, "r", encoding="utf-8") as file:
         template_str = file.read()
 
     template = Template(template_str)
@@ -89,3 +93,4 @@ def generate_pdf(cv_data, output_path="generated_cv.pdf"):
         client.convertStringToFile(html_content, f)
 
     return output_path
+
