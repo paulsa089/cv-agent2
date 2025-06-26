@@ -57,10 +57,16 @@ def generate_cv_json(kurzprofil):
         )
 
         content = response.choices[0].message.content.strip()
+        print("GPT-Antwort:")
+        print(content)
 
-        # JSON parsen
         cv_json = json.loads(content)
         return cv_json
+
+    except json.JSONDecodeError as e:
+        print("JSONDecodeError:", e)
+        print("Rohinhalt:", content)
+        return None
 
     except Exception as e:
         print(f"Fehler: {e}")
@@ -71,7 +77,6 @@ def generate_pdf(cv_data, output_path="generated_cv.pdf"):
     username = os.getenv("PDFCROWD_USERNAME")
     api_key = os.getenv("PDFCROWD_API_KEY")
 
-    # HTML Template laden
     with open("cv_template.html", "r", encoding="utf-8") as file:
         template_str = file.read()
 
