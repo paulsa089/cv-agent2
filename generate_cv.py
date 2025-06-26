@@ -2,6 +2,7 @@ import openai
 import pdfcrowd
 import os
 import json
+import re
 from dotenv import load_dotenv
 from jinja2 import Template
 
@@ -57,19 +58,17 @@ def generate_cv_json(kurzprofil):
         )
 
         content = response.choices[0].message.content.strip()
-        print("GPT-Antwort:")
-        print(content)
+        print("OpenAI response (raw):", content)
+
+        # Entferne evtl. Markdown-Codeblöcke mit JSON (```json ... ```)
+        content = re.sub(r"^```json|```$", "", content, flags=re.MULTILINE).strip()
 
         cv_json = json.loads(content)
         return cv_json
 
-    except json.JSONDecodeError as e:
-        print("JSONDecodeError:", e)
-        print("Rohinhalt:", content)
-        return None
-
     except Exception as e:
-        print(f"Fehler: {e}")
+        print(f"Fehler beim JSON parsen oder API-Aufruf: {e}")
+        print(f"Antwort war:\n{content}")
         return None
 
 
@@ -77,6 +76,7 @@ def generate_pdf(cv_data, output_path="generated_cv.pdf"):
     username = os.getenv("PDFCROWD_USERNAME")
     api_key = os.getenv("PDFCROWD_API_KEY")
 
+    # HTML Template laden
     with open("cv_template.html", "r", encoding="utf-8") as file:
         template_str = file.read()
 
